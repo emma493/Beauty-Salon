@@ -24,7 +24,7 @@ import { CustomDatePicker } from '../common/CustomDatePicker';
 export const UserTransactions: React.FC = () => {
   const { orders, settings, currentUser } = useStore();
   const [searchTerm, setSearchTerm] = useState('');
-  const [timePreset, setTimePreset] = useState<'24h' | 'today' | 'custom' | 'all'>('24h');
+  const [timePreset, setTimePreset] = useState<'24h' | 'today' | 'custom' | 'all'>('today');
   const [selectedDate, setSelectedDate] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'Completed' | 'Pending' | 'Declined'>('all');
   const [previewOrder, setPreviewOrder] = useState<Order | null>(null);
@@ -129,8 +129,8 @@ export const UserTransactions: React.FC = () => {
         </div>
       </div>
 
-      {/* Top 4 Metric Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Top 2 Metric Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Card 1: Total Transactions */}
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition">
           <div className="flex items-center justify-between">
@@ -163,42 +163,6 @@ export const UserTransactions: React.FC = () => {
             <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Sales Revenue</div>
             <div className="text-2xl font-black text-slate-900 dark:text-white mt-1 truncate">
               {currencySymbol} {totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Average Order Value */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition">
-          <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-xl bg-[#486B1C]/10 dark:bg-lime-950/60 text-[#486B1C] dark:text-lime-400 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-              {timePreset === '24h' ? '24 Hours' : timePreset === 'today' ? 'Today' : timePreset === 'custom' && selectedDate ? selectedDate : 'All Time'}
-            </span>
-          </div>
-          <div className="mt-4">
-            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Average Order Value</div>
-            <div className="text-2xl font-black text-slate-900 dark:text-white mt-1 truncate">
-              {currencySymbol} {averageOrderValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Completed Orders */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition">
-          <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-xl bg-[#486B1C]/10 dark:bg-lime-950/60 text-[#486B1C] dark:text-lime-400 flex items-center justify-center">
-              <ShoppingBag className="w-5 h-5" />
-            </div>
-            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-              {timePreset === '24h' ? '24 Hours' : timePreset === 'today' ? 'Today' : timePreset === 'custom' && selectedDate ? selectedDate : 'All Time'}
-            </span>
-          </div>
-          <div className="mt-4">
-            <div className="text-xs font-semibold text-slate-500 dark:text-slate-400">Completed Orders</div>
-            <div className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-              {completedCount}
             </div>
           </div>
         </div>
@@ -265,7 +229,7 @@ export const UserTransactions: React.FC = () => {
                 if (val) {
                   setTimePreset('custom');
                 } else {
-                  setTimePreset('24h');
+                  setTimePreset('today');
                 }
                 setCurrentPage(1);
               }}

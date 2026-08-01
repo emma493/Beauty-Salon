@@ -67,10 +67,10 @@ const isOrderInTimeRange = (order: Order, timeRange: TimeRangeFilter): boolean =
 
 export const AdminDashboard: React.FC = () => {
   const { orders, products, settings, setCurrentTab } = useStore();
-  const [salesFilter, setSalesFilter] = useState<TimeRangeFilter>('Last Month');
-  const [incomeFilter, setIncomeFilter] = useState<TimeRangeFilter>('This Year');
-  const [visitorFilter, setVisitorFilter] = useState<TimeRangeFilter>('Last Month');
-  const [topProductsFilter, setTopProductsFilter] = useState<TimeRangeFilter>('This Month');
+  const [salesFilter, setSalesFilter] = useState<TimeRangeFilter>('All Time');
+  const [incomeFilter, setIncomeFilter] = useState<TimeRangeFilter>('All Time');
+  const [visitorFilter, setVisitorFilter] = useState<TimeRangeFilter>('All Time');
+  const [topProductsFilter, setTopProductsFilter] = useState<TimeRangeFilter>('All Time');
 
   const currencySymbol = settings.currency || 'GH₵';
 
@@ -88,7 +88,7 @@ export const AdminDashboard: React.FC = () => {
   incomeOrders.forEach((o) => {
     o.items?.forEach((item) => {
       const prod = products.find((p) => p.id === item.productId);
-      const cost = prod ? prod.costPrice : item.unitPrice * 0.7;
+      const cost = item.costPrice !== undefined ? item.costPrice : (prod ? prod.costPrice : item.unitPrice * 0.7);
       incomeAmount += (item.unitPrice - cost) * item.quantity;
     });
   });
@@ -195,7 +195,7 @@ export const AdminDashboard: React.FC = () => {
               {currencySymbol}{incomeAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
             <p className="text-[11px] font-medium text-slate-400 dark:text-slate-400 mt-1 truncate">
-              Net profit in {incomeFilter.toLowerCase()}
+              Total profits (selling - cost) in {incomeFilter.toLowerCase()}
             </p>
           </div>
         </div>
@@ -226,7 +226,7 @@ export const AdminDashboard: React.FC = () => {
               {totalVisitorCount.toLocaleString('en-US')}
             </div>
             <p className="text-[11px] font-medium text-slate-400 dark:text-slate-400 mt-1 truncate">
-              Completed transactions in {visitorFilter.toLowerCase()}
+              Total orders in {visitorFilter.toLowerCase()}
             </p>
           </div>
         </div>

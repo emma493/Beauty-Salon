@@ -74,6 +74,8 @@ interface StoreContextType {
   categories: Category[];
   storeLocations: StoreLocation[];
   addProduct: (product: Omit<Product, 'id' | 'initialQuantity'>) => void;
+  updateProduct: (productId: string, updatedData: Partial<Product>) => void;
+  deleteProduct: (productId: string) => void;
   updateStock: (productId: string, deltaQuantity: number) => void;
   addCategory: (name: string) => void;
   removeCategory: (id: string) => void;
@@ -570,6 +572,29 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     showToast(`Product "${newProduct.name}" added successfully`, 'success');
   };
 
+  const updateProduct = (productId: string, updatedData: Partial<Product>) => {
+    const target = products.find((p) => p.id === productId);
+    if (target) {
+      const updated: Product = {
+        ...target,
+        ...updatedData,
+        id: target.id,
+      };
+      setDoc(doc(db, 'products', productId), updated).catch(console.error);
+      addLog('inventory', `Updated product "${updated.name}" (${updated.id})`);
+      showToast(`Product "${updated.name}" updated successfully`, 'success');
+    }
+  };
+
+  const deleteProduct = (productId: string) => {
+    const target = products.find((p) => p.id === productId);
+    if (target) {
+      deleteDoc(doc(db, 'products', productId)).catch(console.error);
+      addLog('inventory', `Deleted product "${target.name}" (${target.id})`);
+      showToast(`Product "${target.name}" deleted`, 'info');
+    }
+  };
+
   const updateStock = (productId: string, deltaQuantity: number) => {
     const target = products.find((p) => p.id === productId);
     if (target) {
@@ -709,6 +734,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       productName: c.product.name,
       variant: c.product.variant,
       unitPrice: c.product.sellingPrice,
+      costPrice: c.product.costPrice,
       quantity: c.quantity,
       totalPrice: c.totalPrice,
     }));
@@ -909,6 +935,8 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         categories,
         storeLocations,
         addProduct,
+        updateProduct,
+        deleteProduct,
         updateStock,
         addCategory,
         removeCategory,

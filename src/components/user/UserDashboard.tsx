@@ -65,10 +65,9 @@ const isOrderInTimeRange = (order: Order, timeRange: TimeRangeFilter): boolean =
 
 export const UserDashboard: React.FC = () => {
   const { orders, products, settings, currentUser, setCurrentTab } = useStore();
-  const [salesFilter, setSalesFilter] = useState<TimeRangeFilter>('Last Month');
-  const [incomeFilter, setIncomeFilter] = useState<TimeRangeFilter>('This Year');
-  const [visitorFilter, setVisitorFilter] = useState<TimeRangeFilter>('Last Month');
-  const [topProductsFilter, setTopProductsFilter] = useState<TimeRangeFilter>('This Month');
+  const [salesFilter, setSalesFilter] = useState<TimeRangeFilter>('All Time');
+  const [visitorFilter, setVisitorFilter] = useState<TimeRangeFilter>('All Time');
+  const [topProductsFilter, setTopProductsFilter] = useState<TimeRangeFilter>('All Time');
 
   const currencySymbol = settings.currency || 'GH₵';
 
@@ -78,20 +77,10 @@ export const UserDashboard: React.FC = () => {
   );
 
   const salesOrders = myOrders.filter((o) => isOrderInTimeRange(o, salesFilter));
-  const incomeOrders = myOrders.filter((o) => isOrderInTimeRange(o, incomeFilter));
   const visitorOrders = myOrders.filter((o) => isOrderInTimeRange(o, visitorFilter));
   const topProductOrders = myOrders.filter((o) => isOrderInTimeRange(o, topProductsFilter));
 
   const salesAmount = salesOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
-
-  let incomeAmount = 0;
-  incomeOrders.forEach((o) => {
-    o.items?.forEach((item) => {
-      const prod = products.find((p) => p.id === item.productId);
-      const cost = prod ? prod.costPrice : item.unitPrice * 0.7;
-      incomeAmount += (item.unitPrice - cost) * item.quantity;
-    });
-  });
 
   const totalVisitorCount = visitorOrders.length;
 
@@ -132,8 +121,8 @@ export const UserDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 w-full max-w-full overflow-hidden">
-      {/* ROW 1: 3 STAT CARDS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 w-full min-w-0">
+      {/* ROW 1: 2 STAT CARDS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full min-w-0">
         {/* Card 1: Total Sales */}
         <div className="bg-white dark:bg-slate-800/90 rounded-3xl p-5 border border-slate-100 dark:border-slate-700/60 shadow-xs flex flex-col justify-between min-w-0 w-full overflow-hidden space-y-3">
           <div className="flex items-center justify-between gap-2 w-full min-w-0">
@@ -165,38 +154,7 @@ export const UserDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Card 2: Total Income */}
-        <div className="bg-white dark:bg-slate-800/90 rounded-3xl p-5 border border-slate-100 dark:border-slate-700/60 shadow-xs flex flex-col justify-between min-w-0 w-full overflow-hidden space-y-3">
-          <div className="flex items-center justify-between gap-2 w-full min-w-0">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 shrink-0">
-                <Layers className="w-4 h-4" />
-              </div>
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate">Total Income</span>
-            </div>
-            <CustomSelect
-              value={incomeFilter}
-              onChange={(val) => setIncomeFilter(val as TimeRangeFilter)}
-              options={selectOptions}
-              align="right"
-              size="sm"
-            />
-          </div>
-
-          <div className="w-full min-w-0 overflow-hidden">
-            <div
-              className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight truncate w-full"
-              title={`${currencySymbol}${incomeAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-            >
-              {currencySymbol}{incomeAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-            <p className="text-[11px] font-medium text-slate-400 dark:text-slate-400 mt-1 truncate">
-              Net profit in {incomeFilter.toLowerCase()}
-            </p>
-          </div>
-        </div>
-
-        {/* Card 3: Total Orders */}
+        {/* Card 2: Total Orders */}
         <div className="bg-white dark:bg-slate-800/90 rounded-3xl p-5 border border-slate-100 dark:border-slate-700/60 shadow-xs flex flex-col justify-between min-w-0 w-full overflow-hidden space-y-3">
           <div className="flex items-center justify-between gap-2 w-full min-w-0">
             <div className="flex items-center gap-2 min-w-0">
@@ -222,7 +180,7 @@ export const UserDashboard: React.FC = () => {
               {totalVisitorCount.toLocaleString('en-US')}
             </div>
             <p className="text-[11px] font-medium text-slate-400 dark:text-slate-400 mt-1 truncate">
-              Completed transactions in {visitorFilter.toLowerCase()}
+              Total orders in {visitorFilter.toLowerCase()}
             </p>
           </div>
         </div>
