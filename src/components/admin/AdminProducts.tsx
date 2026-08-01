@@ -159,10 +159,6 @@ export const AdminProducts: React.FC = () => {
                 ...storeLocations.map((l) => ({ value: l.id, label: l.name })),
               ]}
               icon={<MapPin className="w-3.5 h-3.5 text-[#486B1C]" />}
-              onDeleteOption={(id) => {
-                removeStoreLocation(id);
-                if (selectedLocation === id) setSelectedLocation('all');
-              }}
             />
           </div>
         </div>
@@ -172,7 +168,7 @@ export const AdminProducts: React.FC = () => {
       <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
         <button
           onClick={() => setSelectedCategory('all')}
-          className={`px-4 py-2 rounded-full text-xs font-extrabold transition shrink-0 ${
+          className={`px-4 py-2 rounded-full text-xs font-extrabold transition shrink-0 cursor-pointer ${
             selectedCategory === 'all'
               ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
               : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-slate-800'
@@ -183,7 +179,7 @@ export const AdminProducts: React.FC = () => {
 
         <button
           onClick={() => setSelectedCategory('most_purchased')}
-          className={`px-4 py-2 rounded-full text-xs font-extrabold transition shrink-0 ${
+          className={`px-4 py-2 rounded-full text-xs font-extrabold transition shrink-0 cursor-pointer ${
             selectedCategory === 'most_purchased'
               ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
               : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-slate-800'
@@ -194,7 +190,7 @@ export const AdminProducts: React.FC = () => {
 
         <button
           onClick={() => setSelectedCategory('low_stock')}
-          className={`px-4 py-2 rounded-full text-xs font-extrabold transition shrink-0 ${
+          className={`px-4 py-2 rounded-full text-xs font-extrabold transition shrink-0 cursor-pointer ${
             selectedCategory === 'low_stock'
               ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
               : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-slate-800'
@@ -204,30 +200,17 @@ export const AdminProducts: React.FC = () => {
         </button>
 
         {categories.map((cat) => (
-          <div key={cat.id} className="relative group shrink-0 flex items-center">
-            <button
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`pl-4 pr-7 py-2 rounded-full text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer ${
-                selectedCategory === cat.id
-                  ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
-                  : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-slate-800'
-              }`}
-            >
-              <span>{cat.name}</span>
-            </button>
-            <button
-              type="button"
-              title={`Delete category ${cat.name}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                removeCategory(cat.id);
-                if (selectedCategory === cat.id) setSelectedCategory('all');
-              }}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-red-100 hover:bg-red-500 text-red-600 hover:text-white dark:bg-red-950 dark:hover:bg-red-600 dark:text-red-400 dark:hover:text-white flex items-center justify-center text-[10px] font-bold transition cursor-pointer"
-            >
-              <Minus className="w-2.5 h-2.5" />
-            </button>
-          </div>
+          <button
+            key={cat.id}
+            onClick={() => setSelectedCategory(cat.id)}
+            className={`px-4 py-2 rounded-full text-xs font-extrabold transition shrink-0 cursor-pointer ${
+              selectedCategory === cat.id
+                ? 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs'
+                : 'bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/60 dark:border-slate-800'
+            }`}
+          >
+            {cat.name}
+          </button>
         ))}
       </div>
 
