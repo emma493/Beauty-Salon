@@ -14,9 +14,11 @@ import {
   LayoutGrid,
   List,
   MapPin,
+  Edit3,
 } from 'lucide-react';
 import { Product } from '../../types';
 import { CustomSelect } from '../common/CustomSelect';
+import { EditProductModal } from './EditProductModal';
 
 export const AdminProducts: React.FC = () => {
   const { products, categories, storeLocations, settings, updateStock, setCurrentTab, removeCategory, removeStoreLocation } = useStore();
@@ -26,6 +28,7 @@ export const AdminProducts: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
   const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Quick stock adjust state per product ID
   const [adjustingStockId, setAdjustingStockId] = useState<string | null>(null);
@@ -311,17 +314,27 @@ export const AdminProducts: React.FC = () => {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      onClick={() => {
-                        setAdjustingStockId(p.id);
-                        setAdjustMode('add');
-                        setAdjustQtyInput('');
-                      }}
-                      className="w-full py-1.5 px-2 bg-slate-100 hover:bg-[#486B1C] hover:text-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-extrabold rounded-xl transition flex items-center justify-center gap-1"
-                    >
-                      <Plus className="w-3 h-3" />
-                      <span>Adjust Stock</span>
-                    </button>
+                    <div className="flex items-center gap-1.5 w-full">
+                      <button
+                        onClick={() => setEditingProduct(p)}
+                        className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-[#0A1629] hover:text-white dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-[11px] font-extrabold rounded-xl transition flex items-center justify-center gap-1"
+                        title="Edit product details"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setAdjustingStockId(p.id);
+                          setAdjustMode('add');
+                          setAdjustQtyInput('');
+                        }}
+                        className="flex-1 py-1.5 px-2 bg-slate-100 hover:bg-[#486B1C] hover:text-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[11px] font-extrabold rounded-xl transition flex items-center justify-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Stock</span>
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -384,6 +397,15 @@ export const AdminProducts: React.FC = () => {
                   >
                     <Eye className="w-3.5 h-3.5" />
                     <span>Details</span>
+                  </button>
+
+                  <button
+                    onClick={() => setEditingProduct(p)}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-[#0A1629] hover:text-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-extrabold text-xs rounded-xl transition"
+                    title="Edit product details"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Edit</span>
                   </button>
 
                   {isAdjusting ? (
@@ -509,8 +531,30 @@ export const AdminProducts: React.FC = () => {
                 {detailProduct.description || 'No additional description provided.'}
               </p>
             </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                onClick={() => {
+                  const target = detailProduct;
+                  setDetailProduct(null);
+                  setEditingProduct(target);
+                }}
+                className="px-5 py-2.5 bg-[#0A1629] text-white text-xs font-extrabold rounded-xl hover:bg-black dark:bg-white dark:text-black transition flex items-center gap-1.5"
+              >
+                <Edit3 className="w-4 h-4" />
+                <span>Edit Product Details</span>
+              </button>
+            </div>
           </div>
         </div>
+      )}
+
+      {/* Full Edit Product Modal */}
+      {editingProduct && (
+        <EditProductModal
+          product={editingProduct}
+          onClose={() => setEditingProduct(null)}
+        />
       )}
     </div>
   );
