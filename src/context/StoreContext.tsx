@@ -167,16 +167,41 @@ const DEFAULT_ADMIN: UserProfile = {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Active state
-  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  // Active state persisted across page reloads
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedUser = localStorage.getItem('salon_active_user');
+        if (savedUser) {
+          return JSON.parse(savedUser);
+        }
+      } catch (e) {
+        console.error('Failed to parse saved user session', e);
+      }
+    }
+    return null;
+  });
+
   const [currentRoleView, setCurrentRoleView] = useState<UserRole>(() => {
     if (typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/admin')) {
       return 'admin';
     }
+    if (currentUser?.role === 'admin') return 'admin';
     return 'user';
   });
   const [currentTab, setCurrentTabState] = useState<string>('Dashboard');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+
+  // Sync active user session to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (currentUser) {
+        localStorage.setItem('salon_active_user', JSON.stringify(currentUser));
+      } else {
+        localStorage.removeItem('salon_active_user');
+      }
+    }
+  }, [currentUser]);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
 
@@ -475,6 +500,9 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
     }
     setCurrentUser(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('salon_active_user');
+    }
     showToast('You have been signed out', 'info');
   };
 
