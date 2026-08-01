@@ -189,7 +189,17 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (currentUser?.role === 'admin') return 'admin';
     return 'user';
   });
-  const [currentTab, setCurrentTabState] = useState<string>('Dashboard');
+  const [currentTab, setCurrentTabState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedTab = localStorage.getItem('salon_active_tab');
+        if (savedTab) return savedTab;
+      } catch (e) {
+        console.error('Failed to parse saved active tab', e);
+      }
+    }
+    return 'Dashboard';
+  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   // Sync active user session to localStorage
@@ -202,6 +212,15 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
     }
   }, [currentUser]);
+
+  // Sync active tab to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (currentTab) {
+        localStorage.setItem('salon_active_tab', currentTab);
+      }
+    }
+  }, [currentTab]);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
 
@@ -500,8 +519,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
     }
     setCurrentUser(null);
+    setCurrentTabState('Dashboard');
     if (typeof window !== 'undefined') {
       localStorage.removeItem('salon_active_user');
+      localStorage.removeItem('salon_active_tab');
     }
     showToast('You have been signed out', 'info');
   };
