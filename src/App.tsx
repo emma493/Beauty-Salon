@@ -32,14 +32,20 @@ const MainAppContent: React.FC = () => {
   const [showSupabaseModal, setShowSupabaseModal] = useState(false);
 
   // Normalize currentTab string to view keys
-  const activeTabKey = (currentTab || 'dashboard')
-    .toLowerCase()
-    .replace('send feedback', 'feedback')
-    .replace('feedbacks', 'feedback')
-    .replace('add product', 'add-product')
-    .replace('add user', 'add-user')
-    .replace('transaction', 'transactions')
-    .replace('orders', 'order');
+  const getActiveTabKey = (tab: string) => {
+    const clean = (tab || 'dashboard').toLowerCase().trim();
+    if (clean === 'dashboard') return 'dashboard';
+    if (clean === 'products' || clean === 'product') return 'products';
+    if (clean === 'orders' || clean === 'order') return 'order';
+    if (clean === 'transactions' || clean === 'transaction') return 'transactions';
+    if (clean === 'add-product' || clean === 'add product') return 'add-product';
+    if (clean === 'add-user' || clean === 'add user') return 'add-user';
+    if (clean === 'settings' || clean === 'setting') return 'settings';
+    if (clean === 'feedback' || clean === 'feedbacks' || clean === 'send feedback') return 'feedback';
+    return clean;
+  };
+
+  const activeTabKey = getActiveTabKey(currentTab);
 
   if (!isAuthenticated) {
     return (

@@ -105,7 +105,12 @@ export const Sidebar: React.FC = () => {
       <nav className="flex-1 space-y-1.5 pt-2 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentTab === item.name;
+          const isTabActive = (tabName: string, itemName: string) => {
+            const normTab = (tabName || '').toLowerCase().replace(/s$/, '');
+            const normItem = (itemName || '').toLowerCase().replace(/s$/, '');
+            return normTab === normItem;
+          };
+          const isActive = isTabActive(currentTab, item.name);
 
           return (
             <button
