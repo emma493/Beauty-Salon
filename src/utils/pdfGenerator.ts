@@ -160,9 +160,9 @@ export function generateOrderReceiptPDF(order: Order, settings: SystemSettings, 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.text('Product', 16, y + 5.5);
-  doc.text('Price', 72, y + 5.5, { align: 'right' });
-  doc.text('Qty', 95, y + 5.5, { align: 'right' });
-  doc.text('Total', 132, y + 5.5, { align: 'right' });
+  doc.text('Price', 94, y + 5.5, { align: 'right' });
+  doc.text('Qty', 108, y + 5.5, { align: 'right' });
+  doc.text('Total', 133, y + 5.5, { align: 'right' });
 
   y += 12;
   doc.setFont('helvetica', 'normal');
@@ -170,7 +170,16 @@ export function generateOrderReceiptPDF(order: Order, settings: SystemSettings, 
   doc.setTextColor(31, 41, 55);
 
   order.items.forEach((item) => {
-    if (y > 175) {
+    const itemName = `${item.productName}${item.variant ? ` (${item.variant})` : ''}`;
+    // Permanently restrict text width to 52mm max so long product names never collide with price digits
+    const rawLines = doc.splitTextToSize(itemName, 52);
+    const nameLines = rawLines.slice(0, 2);
+    if (rawLines.length > 2 && nameLines.length === 2) {
+      nameLines[1] = nameLines[1].replace(/\.?$/, '...');
+    }
+    const rowAdvance = nameLines.length > 1 ? 11 : 7;
+
+    if (y + rowAdvance > 175) {
       doc.addPage();
       doc.setFillColor(255, 255, 255);
       doc.rect(0, 0, 148, 210, 'F');
@@ -179,13 +188,12 @@ export function generateOrderReceiptPDF(order: Order, settings: SystemSettings, 
       y = 20;
     }
 
-    const itemName = `${item.productName}${item.variant ? ` (${item.variant})` : ''}`;
-    doc.text(itemName.length > 32 ? itemName.slice(0, 30) + '...' : itemName, 16, y);
-    doc.text(`${pdfCurrency} ${item.unitPrice.toFixed(2)}`, 72, y, { align: 'right' });
-    doc.text(`${item.quantity}`, 95, y, { align: 'right' });
-    doc.text(`${pdfCurrency} ${item.totalPrice.toFixed(2)}`, 132, y, { align: 'right' });
+    doc.text(nameLines, 16, y);
+    doc.text(`${pdfCurrency} ${item.unitPrice.toFixed(2)}`, 94, y, { align: 'right' });
+    doc.text(`${item.quantity}`, 108, y, { align: 'right' });
+    doc.text(`${pdfCurrency} ${item.totalPrice.toFixed(2)}`, 133, y, { align: 'right' });
 
-    y += 7;
+    y += rowAdvance;
   });
 
   // Table Bottom Divider
@@ -202,7 +210,7 @@ export function generateOrderReceiptPDF(order: Order, settings: SystemSettings, 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
   doc.text('TOTAL', 75, y + 6.5);
-  doc.text(`${pdfCurrency} ${order.totalAmount.toFixed(2)}`, 131, y + 6.5, { align: 'right' });
+  doc.text(`${pdfCurrency} ${order.totalAmount.toFixed(2)}`, 133, y + 6.5, { align: 'right' });
 
   if (download) {
     const filename = order.pdfFileName || `${order.id}_${order.customerPhone}_${order.date}_${order.time}.pdf`.replace(/\s+/g, '');

@@ -592,14 +592,14 @@ export const AdminTransactions: React.FC = () => {
               </div>
 
               {/* Items List */}
-              <div className="pt-2 space-y-1">
+              <div className="pt-2 space-y-1.5">
                 <div className="font-bold text-slate-500 uppercase text-[10px]">Purchased Items</div>
                 {previewOrder.items.map((i, index) => (
-                  <div key={index} className="flex justify-between text-slate-800 dark:text-slate-200 font-medium">
-                    <span>
-                      {index + 1}. {i.productName} (x{i.quantity})
+                  <div key={index} className="flex items-start justify-between gap-3 text-slate-800 dark:text-slate-200 font-medium">
+                    <span className="min-w-0 flex-1 break-words pr-2">
+                      {index + 1}. {i.productName} <span className="text-slate-500 dark:text-slate-400 font-semibold">(x{i.quantity})</span>
                     </span>
-                    <span>
+                    <span className="shrink-0 font-bold text-right">
                       {currencySymbol} {i.totalPrice.toFixed(2)}
                     </span>
                   </div>
