@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'worker';
+export type UserRole = 'admin' | 'worker' | 'user';
 
 export type OnlineStatus = 'online' | 'offline' | string; // e.g., '30 mins ago'
 

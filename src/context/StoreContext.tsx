@@ -184,6 +184,20 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return null;
   });
 
+  const [adminUser, setAdminUser] = useState<UserProfile>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const savedAdmin = localStorage.getItem('salon_admin_user');
+        if (savedAdmin) {
+          return JSON.parse(savedAdmin);
+        }
+      } catch (e) {
+        console.error('Failed to parse saved admin user', e);
+      }
+    }
+    return DEFAULT_ADMIN;
+  });
+
   const [currentRoleView, setCurrentRoleView] = useState<UserRole>(() => {
     if (typeof window !== 'undefined' && window.location.pathname.toLowerCase().startsWith('/admin')) {
       return 'admin';
@@ -294,7 +308,24 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   // Real-time Firestore Listeners
   useEffect(() => {
-    // Real-time Firestore Listeners with error handling
+    // 0. Admin User Profile Listener
+    const unsubAdmin = onSnapshot(
+      doc(db, 'app_config', 'admin_user'),
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data() as UserProfile;
+          setAdminUser(data);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('salon_admin_user', JSON.stringify(data));
+          }
+        } else {
+          setDoc(doc(db, 'app_config', 'admin_user'), DEFAULT_ADMIN).catch(console.error);
+        }
+      },
+      (err) => handleFirestoreError(err, OperationType.GET, 'app_config/admin_user')
+    );
+
+    // 1. Settings Listener with error handling
     const unsubSettings = onSnapshot(
       doc(db, 'app_config', 'settings'),
       (snapshot) => {
@@ -431,6 +462,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     );
 
     return () => {
+      unsubAdmin();
       unsubSettings();
       unsubProducts();
       unsubCategories();
@@ -486,18 +518,38 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   // Auth Operations
   const login = (email: string, pass: string): boolean => {
     const cleanEmail = email.trim().toLowerCase();
+    const cleanPass = pass.trim();
+    const currentAdmin = adminUser || DEFAULT_ADMIN;
+
+    const validAdminEmails = [
+      currentAdmin.email.toLowerCase(),
+      settings.adminEmail?.toLowerCase(),
+      settings.companyEmail?.toLowerCase(),
+      'admin@grocery.com',
+      'admin@beautysalon.com',
+      'info@beautysalon.com',
+    ].filter(Boolean);
 
     // Check Admin
-    if (cleanEmail === DEFAULT_ADMIN.email.toLowerCase() && pass === DEFAULT_ADMIN.password) {
-      setCurrentUser(DEFAULT_ADMIN);
+    if (validAdminEmails.includes(cleanEmail) && (cleanPass === currentAdmin.password || pass === currentAdmin.password)) {
+      const updatedAdminSession: UserProfile = {
+        ...currentAdmin,
+        status: 'online',
+        lastActive: new Date().toISOString(),
+      };
+      setCurrentUser(updatedAdminSession);
       setCurrentRoleView('admin');
-      addLog('login', `Admin logged in successfully (${DEFAULT_ADMIN.email})`);
+      addLog('login', `Admin logged in successfully (${currentAdmin.email})`);
       showToast('Signed in as System Admin', 'success');
       return true;
     }
 
-    // Check Workers
-    const workerMatch = workers.find((w) => w.email.toLowerCase() === cleanEmail && w.password === pass);
+    // Check Workers by Email or Worker ID
+    const workerMatch = workers.find(
+      (w) =>
+        (w.email.toLowerCase() === cleanEmail || w.id.toLowerCase() === cleanEmail) &&
+        (w.password === cleanPass || w.password === pass)
+    );
     if (workerMatch) {
       const updatedWorker: UserProfile = { ...workerMatch, status: 'online', lastActive: new Date().toISOString() };
       setCurrentUser(updatedWorker);
@@ -530,12 +582,36 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const updateAdminPassword = (oldPass: string, newPass: string): boolean => {
-    if (currentUser?.password !== oldPass) {
+    const currentAdmin = adminUser || DEFAULT_ADMIN;
+    const activePassword = currentUser?.password || currentAdmin.password;
+
+    if (activePassword !== oldPass && currentAdmin.password !== oldPass) {
       showToast('Previous password is incorrect', 'error');
       return false;
     }
-    const updated = { ...currentUser, password: newPass };
-    setCurrentUser(updated);
+
+    const updatedAdmin: UserProfile = {
+      ...currentAdmin,
+      ...(currentUser?.role === 'admin' ? currentUser : {}),
+      password: newPass,
+    };
+
+    setAdminUser(updatedAdmin);
+    if (currentUser?.role === 'admin') {
+      setCurrentUser(updatedAdmin);
+    }
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('salon_admin_user', JSON.stringify(updatedAdmin));
+      if (currentUser?.role === 'admin') {
+        localStorage.setItem('salon_active_user', JSON.stringify(updatedAdmin));
+      }
+    }
+
+    setDoc(doc(db, 'app_config', 'admin_user'), updatedAdmin).catch((err) => {
+      console.error('Failed to update admin user in Firestore:', err);
+    });
+
     addLog('system', 'Admin changed password');
     showToast('Admin password updated successfully', 'success');
     return true;
@@ -544,11 +620,19 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const resetWorkerPassword = (workerId: string, newPass: string) => {
     const target = workers.find((w) => w.id === workerId);
     if (target) {
-      const updated = { ...target, password: newPass };
-      setDoc(doc(db, 'workers', workerId), updated).catch(console.error);
+      const updated: UserProfile = { ...target, password: newPass };
+      setWorkers((prev) => prev.map((w) => (w.id === workerId ? updated : w)));
+      if (currentUser?.id === workerId) {
+        setCurrentUser(updated);
+      }
+      setDoc(doc(db, 'workers', workerId), updated).catch((err) => {
+        console.error('Failed to reset worker password in Firestore:', err);
+      });
+      addLog('system', `Admin reset password for worker ID ${workerId}`);
+      showToast(`Password for worker ${target.firstName} reset successfully`, 'success');
+    } else {
+      showToast('Worker account not found', 'error');
     }
-    addLog('system', `Admin reset password for worker ID ${workerId}`);
-    showToast('Worker password reset successfully', 'success');
   };
 
   // Settings
@@ -796,6 +880,7 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       status: 'offline',
       lastActive: new Date().toISOString(),
     };
+    setWorkers((prev) => [...prev.filter((w) => w.id !== newWorker.id), newWorker]);
     setDoc(doc(db, 'workers', newWorker.id), newWorker).catch(console.error);
     addLog('system', `Created worker account for ${newWorker.firstName} ${newWorker.lastName} (${newWorker.id})`);
     showToast(`Worker ${newWorker.firstName} added`, 'success');
@@ -805,6 +890,10 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const target = workers.find((w) => w.id === workerId);
     if (target) {
       const updated = { ...target, ...updatedData };
+      setWorkers((prev) => prev.map((w) => (w.id === workerId ? updated : w)));
+      if (currentUser?.id === workerId) {
+        setCurrentUser(updated);
+      }
       setDoc(doc(db, 'workers', workerId), updated).catch(console.error);
       showToast('Worker profile updated', 'success');
     }

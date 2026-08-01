@@ -139,7 +139,11 @@ VALUES (1, 'Beauty Salon', '054 285 9612', 'info@beautysalon.com', 'Accra, Ghana
 ON CONFLICT (id) DO NOTHING;
 `;
 
-export const SupabaseModal: React.FC = () => {
+interface SupabaseModalProps {
+  onClose?: () => void;
+}
+
+export const SupabaseModal: React.FC<SupabaseModalProps> = ({ onClose }) => {
   const { isSqlModalOpen, setIsSqlModalOpen, showToast } = useStore();
   const [copied, setCopied] = useState(false);
 

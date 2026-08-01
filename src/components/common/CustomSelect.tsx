@@ -166,7 +166,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
               return (
                 <div key={option.value} className="flex items-center gap-1 w-full group/opt">
                   <button
-                    ref={(el) => (optionRefs.current[idx] = el)}
+                    ref={(el) => { optionRefs.current[idx] = el; }}
                     type="button"
                     role="option"
                     aria-selected={isSelected}
