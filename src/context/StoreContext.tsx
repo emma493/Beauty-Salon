@@ -539,25 +539,27 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const addCategory = (name: string) => {
     if (!name.trim()) return;
     const newCat = { id: `cat-${Date.now()}`, name: name.trim() };
+    setCategories((prev) => [...prev, newCat]);
     setDoc(doc(db, 'categories', newCat.id), newCat).catch(console.error);
     showToast(`Category "${name}" added`, 'success');
   };
 
   const removeCategory = (id: string) => {
+    setCategories((prev) => prev.filter((c) => c.id !== id));
     deleteDoc(doc(db, 'categories', id)).catch(console.error);
     showToast('Category removed', 'info');
   };
 
-
-
   const addStoreLocation = (name: string) => {
     if (!name.trim()) return;
     const newLoc = { id: `loc-${Date.now()}`, name: name.trim() };
+    setStoreLocations((prev) => [...prev, newLoc]);
     setDoc(doc(db, 'store_locations', newLoc.id), newLoc).catch(console.error);
     showToast(`Location "${name}" added`, 'success');
   };
 
   const removeStoreLocation = (id: string) => {
+    setStoreLocations((prev) => prev.filter((l) => l.id !== id));
     deleteDoc(doc(db, 'store_locations', id)).catch(console.error);
     showToast('Location removed', 'info');
   };

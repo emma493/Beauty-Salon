@@ -15,6 +15,7 @@ import {
   Info,
   Layers,
   Loader2,
+  Minus,
 } from 'lucide-react';
 import { CustomSelect } from '../common/CustomSelect';
 import { CustomDatePicker } from '../common/CustomDatePicker';
@@ -28,7 +29,9 @@ export const AdminAddProduct: React.FC = () => {
     categories,
     storeLocations,
     addCategory,
+    removeCategory,
     addStoreLocation,
+    removeStoreLocation,
     settings,
     setCurrentTab,
     showToast,
@@ -263,6 +266,10 @@ export const AdminAddProduct: React.FC = () => {
                       icon={<Tag className="w-4 h-4 text-slate-400 shrink-0" />}
                       className="w-full"
                       buttonClassName="w-full"
+                      onDeleteOption={(id) => {
+                        removeCategory(id);
+                        if (categoryId === id) setCategoryId('');
+                      }}
                     />
                   </div>
 
@@ -287,6 +294,10 @@ export const AdminAddProduct: React.FC = () => {
                       icon={<MapPin className="w-4 h-4 text-slate-400 shrink-0" />}
                       className="w-full"
                       buttonClassName="w-full"
+                      onDeleteOption={(id) => {
+                        removeStoreLocation(id);
+                        if (locationId === id) setLocationId('');
+                      }}
                     />
                   </div>
                 </div>
@@ -674,15 +685,15 @@ export const AdminAddProduct: React.FC = () => {
         </div>
       </div>
 
-      {/* Category Creation Modal */}
+      {/* Category Creation & Management Modal */}
       {showCategoryModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-xl">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-xl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-900 dark:text-white">Add New Category</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white">Manage Categories</h3>
               <button
                 onClick={() => setShowCategoryModal(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -693,48 +704,80 @@ export const AdminAddProduct: React.FC = () => {
                 if (newCategoryName.trim()) {
                   addCategory(newCategoryName.trim());
                   setNewCategoryName('');
-                  setShowCategoryModal(false);
                 }
               }}
-              className="space-y-4"
+              className="space-y-3"
             >
-              <input
-                type="text"
-                required
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                placeholder="e.g. Hair Care, Beverages"
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white"
-              />
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Add New Category</label>
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCategoryModal(false)}
-                  className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 font-bold text-xs rounded-xl"
-                >
-                  Cancel
-                </button>
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="e.g. Hair Care, Beverages"
+                  className="flex-1 px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#3B52D4]"
+                />
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-[#3B52D4] text-white font-bold text-xs rounded-xl"
+                  className="px-4 py-2.5 bg-[#3B52D4] hover:bg-[#2f42b3] text-white font-bold text-xs rounded-xl transition cursor-pointer shrink-0"
                 >
-                  Create
+                  + Add
                 </button>
               </div>
             </form>
+
+            {/* List of existing categories with (-) delete button */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Existing Categories ({categories.length})</label>
+              <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1">
+                {categories.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic">No categories created yet.</p>
+                ) : (
+                  categories.map((cat) => (
+                    <div
+                      key={cat.id}
+                      className="flex items-center justify-between px-3.5 py-2 bg-slate-50 dark:bg-slate-800/80 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/50"
+                    >
+                      <span className="truncate">{cat.name}</span>
+                      <button
+                        type="button"
+                        title={`Delete category ${cat.name}`}
+                        onClick={() => {
+                          removeCategory(cat.id);
+                          if (categoryId === cat.id) setCategoryId('');
+                        }}
+                        className="w-6 h-6 flex items-center justify-center bg-red-100 hover:bg-red-500 text-red-600 hover:text-white dark:bg-red-950/60 dark:hover:bg-red-600 dark:text-red-400 dark:hover:text-white rounded-lg transition cursor-pointer shrink-0 ml-2"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowCategoryModal(false)}
+                className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs rounded-xl transition cursor-pointer text-slate-700 dark:text-slate-200"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Location Creation Modal */}
+      {/* Location Creation & Management Modal */}
       {showLocationModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
-          <div className="w-full max-w-sm bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-xl">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 space-y-4 shadow-xl">
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h3 className="font-bold text-slate-900 dark:text-white">Add New Location</h3>
+              <h3 className="font-bold text-slate-900 dark:text-white">Manage Store Locations</h3>
               <button
                 onClick={() => setShowLocationModal(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -745,35 +788,67 @@ export const AdminAddProduct: React.FC = () => {
                 if (newLocationName.trim()) {
                   addStoreLocation(newLocationName.trim());
                   setNewLocationName('');
-                  setShowLocationModal(false);
                 }
               }}
-              className="space-y-4"
+              className="space-y-3"
             >
-              <input
-                type="text"
-                required
-                value={newLocationName}
-                onChange={(e) => setNewLocationName(e.target.value)}
-                placeholder="e.g. Shelf A1, Cold Storage"
-                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white"
-              />
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Add New Location</label>
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowLocationModal(false)}
-                  className="flex-1 py-2.5 bg-slate-100 dark:bg-slate-800 font-bold text-xs rounded-xl"
-                >
-                  Cancel
-                </button>
+                <input
+                  type="text"
+                  value={newLocationName}
+                  onChange={(e) => setNewLocationName(e.target.value)}
+                  placeholder="e.g. Shelf A1, Cold Storage"
+                  className="flex-1 px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#3B52D4]"
+                />
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-[#3B52D4] text-white font-bold text-xs rounded-xl"
+                  className="px-4 py-2.5 bg-[#3B52D4] hover:bg-[#2f42b3] text-white font-bold text-xs rounded-xl transition cursor-pointer shrink-0"
                 >
-                  Create
+                  + Add
                 </button>
               </div>
             </form>
+
+            {/* List of existing locations with (-) delete button */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+              <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Existing Store Locations ({storeLocations.length})</label>
+              <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1">
+                {storeLocations.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic">No locations created yet.</p>
+                ) : (
+                  storeLocations.map((loc) => (
+                    <div
+                      key={loc.id}
+                      className="flex items-center justify-between px-3.5 py-2 bg-slate-50 dark:bg-slate-800/80 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/50"
+                    >
+                      <span className="truncate">{loc.name}</span>
+                      <button
+                        type="button"
+                        title={`Delete location ${loc.name}`}
+                        onClick={() => {
+                          removeStoreLocation(loc.id);
+                          if (locationId === loc.id) setLocationId('');
+                        }}
+                        className="w-6 h-6 flex items-center justify-center bg-red-100 hover:bg-red-500 text-red-600 hover:text-white dark:bg-red-950/60 dark:hover:bg-red-600 dark:text-red-400 dark:hover:text-white rounded-lg transition cursor-pointer shrink-0 ml-2"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => setShowLocationModal(false)}
+                className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs rounded-xl transition cursor-pointer text-slate-700 dark:text-slate-200"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
