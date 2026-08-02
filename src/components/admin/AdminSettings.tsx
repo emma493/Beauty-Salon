@@ -13,9 +13,6 @@ import {
   Phone,
   MapPin,
   Sparkles,
-  Trash2,
-  RotateCcw,
-  AlertTriangle,
   Eye,
   EyeOff,
 } from 'lucide-react';
@@ -27,9 +24,7 @@ interface AdminSettingsProps {
 }
 
 export const AdminSettings: React.FC<AdminSettingsProps> = () => {
-  const { settings, updateSettings, updateAdminPassword, showToast, clearAllData } = useStore();
-  const [isResetting, setIsResetting] = useState(false);
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const { settings, updateSettings, updateAdminPassword, showToast } = useStore();
 
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
@@ -422,87 +417,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = () => {
           </form>
         </div>
       </div>
-
-      {/* Database Reset & Publishing Cleanup Section */}
-      <div className="bg-white dark:bg-slate-800/90 rounded-3xl border border-rose-200/80 dark:border-rose-900/50 shadow-xs p-6 space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-rose-100 dark:bg-rose-950/80 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
-              <Trash2 className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
-                Reset Store Database (Publishing Clean Slate)
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Purge all test transactions, test products, test logs, and test workers so your store starts with a clean database.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setShowResetConfirm(true)}
-            className="px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-2 cursor-pointer shrink-0 active:scale-98"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span>Reset Database to Clean State</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Confirmation Modal for Resetting Database */}
-      {showResetConfirm && (
-        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 border border-slate-200 dark:border-slate-800 shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
-            <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-400 flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <div className="space-y-2">
-              <h4 className="text-lg font-black text-slate-900 dark:text-white">
-                Confirm Database Reset?
-              </h4>
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                This action will permanently remove all test products, transaction history, customer orders, feedback logs, and worker accounts from Firestore.
-              </p>
-            </div>
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowResetConfirm(false)}
-                disabled={isResetting}
-                className="flex-1 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isResetting}
-                onClick={async () => {
-                  setIsResetting(true);
-                  try {
-                    await clearAllData();
-                    setShowResetConfirm(false);
-                  } catch (err: any) {
-                    showToast(err.message || 'Failed to reset database', 'error');
-                  } finally {
-                    setIsResetting(false);
-                  }
-                }}
-                className="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {isResetting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Resetting...</span>
-                  </>
-                ) : (
-                  <span>Yes, Purge Test Data</span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

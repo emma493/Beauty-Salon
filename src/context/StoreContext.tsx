@@ -127,9 +127,6 @@ interface StoreContextType {
   // Supabase SQL Viewer Modal
   isSqlModalOpen: boolean;
   setIsSqlModalOpen: (open: boolean) => void;
-
-  // Clear All Data
-  clearAllData: () => Promise<void>;
 }
 
 const DEFAULT_SETTINGS: SystemSettings = {
@@ -981,21 +978,6 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     return false;
   }).length;
 
-  const clearAllData = async () => {
-    const collectionsToClear = ['products', 'orders', 'feedback_messages', 'logs', 'notes', 'workers'];
-    for (const colName of collectionsToClear) {
-      try {
-        const snap = await getDocs(collection(db, colName));
-        const promises = snap.docs.map((d) => deleteDoc(doc(db, colName, d.id)));
-        await Promise.all(promises);
-      } catch (err: any) {
-        handleFirestoreError(err, OperationType.DELETE, colName);
-      }
-    }
-    setCart([]);
-    showToast('Database reset to clean state successfully!', 'success');
-  };
-
   return (
     <StoreContext.Provider
       value={{
@@ -1046,8 +1028,6 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         removeWorker,
         generateWorkerId,
 
-
-
         notes: notes.filter((n) => n.userId === (currentUser?.id || 'GUEST')),
         saveNote,
         deleteNote,
@@ -1065,8 +1045,6 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
         isSqlModalOpen,
         setIsSqlModalOpen,
-
-        clearAllData,
       }}
     >
       {children}
